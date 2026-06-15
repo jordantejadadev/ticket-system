@@ -1,0 +1,14 @@
+const StatusBadge = ({ estado }) => {
+
+  const styles = {
+    ABIERTO: 'bg-red-100 text-red-700',
+    EN_PROGRESO: 'bg-yellow-100 text-yellow-700',
+    CERRADO: 'bg-green-100 text-green-700'
+  }
+
+  return (
+    <span className={`px-4 py-1 rounded-full text-sm font-medium ${styles[estado]}`}>{estado}</span>
+  )
+}
+
+export default StatusBadge;
