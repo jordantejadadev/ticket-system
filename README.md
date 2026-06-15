@@ -1,13 +1,23 @@
 # Ticket System
 
-## Requisitos
+Sistema de gestión de tickets desarrollado con:
 
-- Java 17
-- Node.js
+- Spring Boot
+- React + Vite
 - PostgreSQL
-- Docker (más adelante)
+- Docker Compose
+- Nginx
 
-## Configuración
+---
+
+# Requisitos
+
+- Docker
+- Docker Compose
+
+---
+
+# Configuración
 
 Copiar:
 
@@ -21,7 +31,26 @@ como:
 .env
 ```
 
-y completar las credenciales.
+y completar las variables de entorno.
+
+---
+
+# Ejecutar con Docker
+
+Desde la raíz del proyecto:
+
+```bash
+docker compose up --build
+```
+
+La aplicación estará disponible en:
+
+- Frontend: http://localhost:5173
+- Backend: http://localhost:8080
+
+---
+
+# Ejecutar sin Docker (desarrollo)
 
 ## Backend
 
@@ -36,4 +65,18 @@ cd backend
 cd frontend
 npm install
 npm run dev
+```
+
+---
+
+# Estructura del proyecto
+
+```
+ticket-demo/
+│
+├── backend/
+├── frontend/
+├── docker-compose.yml
+├── .env.example
+└── README.md
 ```
