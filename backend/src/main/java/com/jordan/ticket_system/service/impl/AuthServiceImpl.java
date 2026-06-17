@@ -3,6 +3,7 @@ package com.jordan.ticket_system.service.impl;
 import com.jordan.ticket_system.dto.LoginRequest;
 import com.jordan.ticket_system.entity.RefreshToken;
 import com.jordan.ticket_system.entity.User;
+import com.jordan.ticket_system.exception.UnauthorizedException;
 import com.jordan.ticket_system.repository.RefreshTokenRepository;
 import com.jordan.ticket_system.repository.UserRepository;
 import com.jordan.ticket_system.security.JwtService;
@@ -26,10 +27,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public User login(LoginRequest request) {
 
-        User user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(()-> new UnauthorizedException("Credenciales inválidas"));
 
         if(!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Password incorrecto");
+            throw new UnauthorizedException("Password incorrecto");
         }
 
         return user;
@@ -54,12 +55,17 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String refresh(String refreshTokenValue) {
+
+        if(refreshTokenValue == null) {
+            throw new UnauthorizedException("Refresh token no encontrado");
+        }
+
         RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenValue)
-                .orElseThrow(() -> new RuntimeException("Refresh token inválido"));
+                .orElseThrow(() -> new UnauthorizedException("Refresh token inválido"));
 
         if(refreshToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             refreshTokenRepository.delete(refreshToken);
-            throw new RuntimeException("Refresh token expirado");
+            throw new UnauthorizedException("Refresh token expirado");
         }
 
         User user = refreshToken.getUser();

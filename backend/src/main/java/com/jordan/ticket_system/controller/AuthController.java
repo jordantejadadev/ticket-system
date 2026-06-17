@@ -1,18 +1,31 @@
 package com.jordan.ticket_system.controller;
 
 import com.jordan.ticket_system.dto.AuthResponse;
+import com.jordan.ticket_system.dto.ErrorResponse;
 import com.jordan.ticket_system.dto.LoginRequest;
 import com.jordan.ticket_system.entity.RefreshToken;
 import com.jordan.ticket_system.entity.User;
+import com.jordan.ticket_system.exception.UnauthorizedException;
 import com.jordan.ticket_system.repository.UserRepository;
 import com.jordan.ticket_system.service.impl.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.HttpHeaders;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(
+        name = "Authentication",
+        description = "Endpoints para autenticación y gestión de sesión"
+)
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -37,9 +50,24 @@ public class AuthController {
 //        return new AuthResponse(token, user.getRole().name());
 //    }
 
+    @Operation(
+            summary = "Iniciar sesión",
+            description = "Autentica al usuario y genera las cookies JWT y Refresh Token."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Inicio de sesión exitoso"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos",
+            content = @Content(
+                    schema = @Schema(implementation = ErrorResponse.class)
+            )),
+            @ApiResponse(responseCode = "401", description = "Credenciales inválidas",
+            content = @Content(
+                    schema = @Schema(implementation = ErrorResponse.class)
+            ))
+    })
     @PostMapping("/login")
     public AuthResponse login(
-            @RequestBody LoginRequest request,
+            @Valid @RequestBody LoginRequest request,
             HttpServletResponse response
     ) {
 
@@ -80,6 +108,17 @@ public class AuthController {
         );
     }
 
+    @Operation(
+            summary = "Obtener usuario autenticado",
+            description = "Devuelve la información del usuario actualmente autenticado."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Usuario autenticado"),
+            @ApiResponse(responseCode = "401", description = "No autenticado",
+            content = @Content(
+                    schema = @Schema(implementation = ErrorResponse.class)
+            ))
+    })
     @GetMapping("/me")
     public AuthResponse me(Authentication authentication) {
         User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
@@ -104,8 +143,22 @@ public class AuthController {
 //        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 //    }
 
+    @Operation(
+            summary = "Renovar Access Token",
+            description = "Genera un nuevo Access Token utilizando el Refresh Token almacenado en una cookie."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Token renovado"),
+            @ApiResponse(responseCode = "401", description = "Refresh Token inválido o expirado",
+            content = @Content(
+                    schema = @Schema(implementation = ErrorResponse.class)
+            ))
+    })
     @PostMapping("/refresh")
-    public void refresh(@CookieValue("refreshToken") String refreshToken, HttpServletResponse response) {
+    public void refresh(@CookieValue(
+            value = "refreshToken",
+            required = false
+    ) String refreshToken, HttpServletResponse response) {
 
         String newAccessToken = authService.refresh(refreshToken);
 
@@ -120,6 +173,17 @@ public class AuthController {
         response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
     }
 
+    @Operation(
+            summary = "Cerrar Sesión",
+            description = "Elimina las cookies JWT y Refresh Token."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Sesión cerrada"),
+            @ApiResponse(responseCode = "401", description = "No autenticado",
+            content = @Content(
+                    schema = @Schema(implementation = ErrorResponse.class)
+            ))
+    })
     @PostMapping("/logout")
     public void logout(
             @CookieValue(

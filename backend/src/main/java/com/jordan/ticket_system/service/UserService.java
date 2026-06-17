@@ -12,9 +12,9 @@ public interface UserService {
 
     Page<UserResponseDTO> getUsers(Pageable pageable, String search);
 
-    User createUser(UserRequestDTO request);
+    UserResponseDTO createUser(UserRequestDTO request);
 
     void deleteUser(Long id);
 
-    User updateUser(Long id, UpdateUserRequestDTO request);
+    UserResponseDTO updateUser(Long id, UpdateUserRequestDTO request);
 }

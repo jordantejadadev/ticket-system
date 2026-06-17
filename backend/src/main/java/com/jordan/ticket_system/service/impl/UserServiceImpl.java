@@ -4,6 +4,8 @@ import com.jordan.ticket_system.dto.UpdateUserRequestDTO;
 import com.jordan.ticket_system.dto.UserRequestDTO;
 import com.jordan.ticket_system.dto.UserResponseDTO;
 import com.jordan.ticket_system.entity.User;
+import com.jordan.ticket_system.exception.ResourceAlreadyExistsException;
+import com.jordan.ticket_system.exception.ResourceNotFoundException;
 import com.jordan.ticket_system.mapper.UserMapper;
 import com.jordan.ticket_system.repository.UserRepository;
 import com.jordan.ticket_system.service.UserService;
@@ -41,9 +43,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User createUser(UserRequestDTO request) {
+    public UserResponseDTO createUser(UserRequestDTO request) {
         if(userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email ya registrado");
+            throw new ResourceAlreadyExistsException("Email ya registrado");
         }
 
         User user = new User();
@@ -52,17 +54,23 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        return userMapper.toDTO(savedUser);
     }
 
     @Override
     public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Usuario no encontrado"));
+
+        userRepository.delete(user);
     }
 
     @Override
-    public User updateUser(Long id, UpdateUserRequestDTO request) {
-        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("Usuario no encotnrado"));
+    public UserResponseDTO updateUser(Long id, UpdateUserRequestDTO request) {
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Usuario no encotnrado"));
 
         user.setName(request.getName());
         user.setEmail(request.getEmail());
@@ -72,7 +80,8 @@ public class UserServiceImpl implements UserService {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        return userRepository.save(user);
+        User updatedUser = userRepository.save(user);
+        return userMapper.toDTO(updatedUser);
     }
 
 }
