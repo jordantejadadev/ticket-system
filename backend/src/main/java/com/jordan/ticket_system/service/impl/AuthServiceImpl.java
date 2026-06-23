@@ -7,6 +7,7 @@ import com.jordan.ticket_system.exception.UnauthorizedException;
 import com.jordan.ticket_system.repository.RefreshTokenRepository;
 import com.jordan.ticket_system.repository.UserRepository;
 import com.jordan.ticket_system.security.JwtService;
+import com.jordan.ticket_system.service.AuthService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
