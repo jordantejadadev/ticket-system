@@ -118,9 +118,34 @@ public class AuthController {
                     schema = @Schema(implementation = ErrorResponse.class)
             ))
     })
+//    @GetMapping("/me")
+//    public AuthResponse me(Authentication authentication) {
+//        if(authentication == null) {
+//            throw new RuntimeException("Authentication es null");
+//        }
+//
+//        User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+//
+//        return new AuthResponse(
+//                user.getName(),
+//                user.getEmail(),
+//                user.getRole().name()
+//        );
+//    }
+
     @GetMapping("/me")
     public AuthResponse me(Authentication authentication) {
-        User user = userRepository.findByEmail(authentication.getName()).orElseThrow();
+
+        System.out.println("Authentication = " + authentication);
+
+        if (authentication == null) {
+            throw new RuntimeException("Authentication es null");
+        }
+
+        System.out.println("Name = " + authentication.getName());
+
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         return new AuthResponse(
                 user.getName(),
